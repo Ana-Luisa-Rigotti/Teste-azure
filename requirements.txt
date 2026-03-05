@@ -1,7 +1,4 @@
 python-dotenv
 fastapi
-<<<<<<< HEAD
 uvicorn
-=======
-uvicorn
->>>>>>> 5e405a1ff0c6ac239705c8fe378b09fdb0066a13
+
