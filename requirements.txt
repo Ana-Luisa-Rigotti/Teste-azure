@@ -3,7 +3,5 @@ uvicorn
 sqlalchemy
 pymssql
 
-//para-front
-
 jinja2
 python-multipart
