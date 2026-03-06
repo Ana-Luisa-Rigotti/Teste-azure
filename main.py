@@ -1,8 +1,11 @@
 import os
 import pymssql
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates #integrar com o front
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 def get_db():
     server = os.getenv("DB_SERVER")
@@ -20,21 +23,41 @@ def get_db():
         database=database
     )
 
-@app.get("/")
-def home():
-    return {"message": "API funcionando"}
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Pessoas")
+        rows = cursor.fetchall()
+        db.close()
 
-@app.post("/pessoas")
-def create_people(id: int, nome: str, idade: int):
+        pessoas = [{"id": r[0], "nome": r[1], "idade": r[2]} for r in rows]
+
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "pessoas": pessoas, "mensagem": None}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/pessoas-form")
+def create_people_form(
+    id: int = Form(...),
+    nome: str = Form(...),
+    idade: int = Form(...)
+):
     try:
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
-        "INSERT INTO Pessoas (id, nome, idade) VALUES (%s, %s, %s)",
-        (id, nome, idade))
+            "INSERT INTO Pessoas (id, nome, idade) VALUES (%s, %s, %s)",
+            (id, nome, idade)
+        )
         db.commit()
         db.close()
-        return {"message": "Pessoa cadastrada"}
+
+        return RedirectResponse(url="/", status_code=303)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
