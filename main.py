@@ -30,7 +30,7 @@ def create_people(id: int, nome: str, idade: int):
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
-        "INSERT INTO Pessoas (id, nome, idade) VALUES (?, ?, ?)",
+        "INSERT INTO Pessoas (id, nome, idade) VALUES (%s, %s, %s)",
         (id, nome, idade))
         db.commit()
         db.close()
@@ -47,6 +47,6 @@ def list_people():
         rows = cursor.fetchall()
         db.close()
 
-        return [{"id": r[0], "nome": r[1], "idade": r[3]} for r in rows]
+        return [{"id": r[0], "nome": r[1], "idade": r[2]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
