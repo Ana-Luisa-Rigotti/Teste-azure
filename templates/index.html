@@ -5,81 +5,84 @@
     <title>Pessoas</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: Arial;
         max-width: 700px;
         margin: 40px auto;
-        padding: 20px;
-        background: #f5f5f5;
       }
-
-      h1,
-      h2 {
-        color: #333;
-      }
-
-      form {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      }
-
-      input {
-        width: 100%;
-        padding: 10px;
-        margin-top: 6px;
-        margin-bottom: 16px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-      }
-
+      input,
       button {
-        padding: 10px 16px;
-        border: none;
-        border-radius: 6px;
-        background: #0078d4;
-        color: white;
-        cursor: pointer;
+        padding: 8px;
+        margin: 6px 0;
       }
-
-      button:hover {
-        background: #005ea6;
-      }
-
       .card {
-        background: white;
-        padding: 15px;
-        margin-bottom: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 8px;
       }
     </style>
   </head>
   <body>
     <h1>Cadastro de Pessoas</h1>
 
+    <!-- Formulário para cadastrar -->
     <form action="/pessoas-form" method="post">
-      <label for="id">ID</label>
-      <input type="number" id="id" name="id" required />
+      <div>
+        <label>ID</label><br />
+        <input name="id" type="number" required />
+      </div>
 
-      <label for="nome">Nome</label>
-      <input type="text" id="nome" name="nome" required />
+      <div>
+        <label>Nome</label><br />
+        <input name="nome" type="text" required />
+      </div>
 
-      <label for="idade">Idade</label>
-      <input type="number" id="idade" name="idade" required />
+      <div>
+        <label>Idade</label><br />
+        <input name="idade" type="number" required />
+      </div>
 
       <button type="submit">Cadastrar</button>
     </form>
 
-    <h2>Pessoas cadastradas</h2>
+    <hr />
 
-    {% for pessoa in pessoas %}
-    <div class="card">
-      <strong>ID:</strong> {{ pessoa.id }}<br />
-      <strong>Nome:</strong> {{ pessoa.nome }}<br />
-      <strong>Idade:</strong> {{ pessoa.idade }}
-    </div>
-    {% endfor %}
+    <h2>Lista de Pessoas</h2>
+
+    <!-- Botão para carregar -->
+    <button onclick="carregarPessoas()">Mostrar pessoas</button>
+
+    <!-- Container onde vamos colocar os dados -->
+    <div id="lista"></div>
+
+    <script>
+      async function carregarPessoas() {
+        const listaDiv = document.getElementById("lista");
+
+        listaDiv.innerHTML = "Carregando...";
+
+        try {
+          const response = await fetch("/pessoas");
+          const pessoas = await response.json();
+
+          listaDiv.innerHTML = "";
+
+          pessoas.forEach((p) => {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            card.innerHTML = `
+            <strong>ID:</strong> ${p.id}<br>
+            <strong>Nome:</strong> ${p.nome}<br>
+            <strong>Idade:</strong> ${p.idade}
+          `;
+
+            listaDiv.appendChild(card);
+          });
+        } catch (err) {
+          listaDiv.innerHTML = "Erro ao carregar pessoas";
+        }
+      }
+    </script>
   </body>
 </html>
