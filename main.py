@@ -24,27 +24,29 @@ def get_db():
 def home():
     return {"message": "API funcionando"}
 
-@app.post("/news")
-def create_news(title: str):
+@app.post("/pessoas")
+def create_people(id: int, nome: str, idade: int):
     try:
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("INSERT INTO news (title) VALUES (%s)", (title,))
+        cursor.execute(
+        "INSERT INTO Pessoas (id, nome, idade) VALUES (?, ?, ?)",
+        (id, nome, idade))
         db.commit()
         db.close()
-        return {"message": "Notícia salva"}
+        return {"message": "Pessoa cadastrada"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/news")
-def list_news():
+@app.get("/pessoas")
+def list_people():
     try:
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT id, title FROM news")
+        cursor.execute("SELECT * FROM Pessoas")
         rows = cursor.fetchall()
         db.close()
 
-        return [{"id": r[0], "title": r[1]} for r in rows]
+        return [{"id": r[0], "nome": r[1], "idade": r[3]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
