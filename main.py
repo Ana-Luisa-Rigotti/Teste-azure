@@ -1,24 +1,50 @@
 import os
+import pymssql
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import create_engine, text
 
 app = FastAPI()
 
-engine = None
+def get_db():
+    server = os.getenv("DB_SERVER")
+    database = os.getenv("DB_NAME")
+    user = os.getenv("DB_USER")
+    password = os.getenv("DB_PASSWORD")
 
-@app.on_event("startup")
-def startup():
-    global engine
-    conn_str = os.getenv("SQL_CONNECTION_STRING")
-    if not conn_str:
-        raise RuntimeError("SQL_CONNECTION_STRING não configurada.")
-    engine = create_engine(conn_str, pool_pre_ping=True)
+    if not all([server, database, user, password]):
+        raise RuntimeError("Variáveis DB_* não configuradas no Azure.")
 
-@app.get("/db-test")
-def db_test():
+    return pymssql.connect(
+        server=server,
+        user=user,
+        password=password,
+        database=database
+    )
+
+@app.get("/")
+def home():
+    return {"message": "API funcionando"}
+
+@app.post("/news")
+def create_news(title: str):
     try:
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT 1")).scalar()
-        return {"db_ok": True, "result": result}
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO news (title) VALUES (%s)", (title,))
+        db.commit()
+        db.close()
+        return {"message": "Notícia salva"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/news")
+def list_news():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT id, title FROM news")
+        rows = cursor.fetchall()
+        db.close()
+
+        return [{"id": r[0], "title": r[1]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
