@@ -1,7 +1,6 @@
 fastapi
 uvicorn
-sqlalchemy
-pymssql
+pyodbc
 
 jinja2
 python-multipart
