@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-
 def get_db():
     server = os.getenv("DB_SERVER")
     database = os.getenv("DB_NAME")
