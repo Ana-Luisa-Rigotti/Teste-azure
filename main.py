@@ -32,7 +32,7 @@ def get_db():
             "DRIVER={ODBC Driver 18 for SQL Server};"
             f"SERVER={server};"
             f"DATABASE={database};"
-            "Authentication=ActiveDirectoryDefault;"
+            "Authentication=ActiveDirectoryDefault;" #tendo login com permissões suficientes no sql, autentica
             "Encrypt=yes;"
             "TrustServerCertificate=no;"
         )
