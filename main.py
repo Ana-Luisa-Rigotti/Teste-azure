@@ -7,34 +7,32 @@ from fastapi.templating import Jinja2Templates
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+
 def get_db():
     server = os.getenv("DB_SERVER")
     database = os.getenv("DB_NAME")
+    website_hostname = os.getenv("WEBSITE_HOSTNAME")
 
     if not server or not database:
         raise RuntimeError("Variáveis DB_SERVER e DB_NAME não configuradas.")
 
-    # Se existir DB_USER e DB_PASSWORD, usa login tradicional
-    user = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-
-    if user and password:
-        conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"UID={user};"
-            f"PWD={password};"
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-        )
-    else:
-        # Se não existir usuário/senha, tenta Managed Identity
+    # Se estiver rodando no Azure App Service, usa Managed Identity
+    if website_hostname:
         conn_str = (
             "DRIVER={ODBC Driver 18 for SQL Server};"
             f"SERVER={server};"
             f"DATABASE={database};"
             "Authentication=ActiveDirectoryMsi;"
+            "Encrypt=yes;"
+            "TrustServerCertificate=no;"
+        )
+    else:
+        # Se estiver rodando fora do Azure, usa a conta Azure da pessoa logada
+        conn_str = (
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            "Authentication=ActiveDirectoryDefault;"
             "Encrypt=yes;"
             "TrustServerCertificate=no;"
         )
