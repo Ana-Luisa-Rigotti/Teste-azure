@@ -27,7 +27,6 @@ def get_db():
 
     return pyodbc.connect(conn_str)
 
-
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     try:
@@ -79,4 +78,4 @@ def list_people():
 
         return [{"id": r[0], "nome": r[1], "idade": r[2]} for r in rows]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) 
