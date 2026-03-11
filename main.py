@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+import socket
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
@@ -86,4 +88,18 @@ def debug_env():
         "DB_SERVER": os.getenv("DB_SERVER"),
         "DB_NAME": os.getenv("DB_NAME"),
         "WEBSITE_HOSTNAME": os.getenv("WEBSITE_HOSTNAME"),
+    }
+@app.get("/debug-sql")
+def debug_sql():
+    server = os.getenv("DB_SERVER")
+    try:
+        with socket.create_connection((server, 1433), timeout=10):
+            return {"ok": True, "server": server, "port": 1433}
+    except Exception as e:
+        return {"ok": False, "server": server, "port": 1433, "error": str(e)}
+
+@app.get("/debug-odbc")
+def debug_odbc():
+    return {
+        "drivers": pyodbc.drivers()
     }
