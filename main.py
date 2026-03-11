@@ -1,11 +1,16 @@
 import os
+import struct
 import pyodbc
+from azure.identity import DefaultAzureCredential
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+SQL_COPT_SS_ACCESS_TOKEN = 1256
+TOKEN_SCOPE = "https://database.windows.net/.default"
 
 
 def get_db():
@@ -16,28 +21,27 @@ def get_db():
     if not server or not database:
         raise RuntimeError("Variáveis DB_SERVER e DB_NAME não configuradas.")
 
-    # Se estiver rodando no Azure App Service, usa Managed Identity
-    if website_hostname:
-        conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            "Authentication=ActiveDirectoryMsi;"
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-        )
-    else:
-        # Se estiver rodando fora do Azure, usa a conta Azure da pessoa logada
-        conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            "Authentication=ActiveDirectoryDefault;" #tendo login com permissões suficientes no sql, autentica
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-        )
+    # Connection string base, sem UID/PWD
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER=tcp:{server},1433;"
+        f"DATABASE={database};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+    )
 
-    return pyodbc.connect(conn_str)
+    # Se estiver no Azure App Service, usa Managed Identity
+    if website_hostname:
+        conn_str += "Authentication=ActiveDirectoryMsi;"
+        return pyodbc.connect(conn_str)
+
+    # Se estiver fora do Azure (local/Docker), usa token da conta Azure/Entra
+    credential = DefaultAzureCredential()
+    access_token = credential.get_token(TOKEN_SCOPE).token
+    token_bytes = access_token.encode("utf-16-le")
+    token_struct = struct.pack(f"<I{len(token_bytes)}s", len(token_bytes), token_bytes)
+
+    return pyodbc.connect(conn_str, attrs_before={SQL_COPT_SS_ACCESS_TOKEN: token_struct})
 
 
 @app.get("/", response_class=HTMLResponse)
