@@ -89,17 +89,3 @@ def debug_env():
         "DB_NAME": os.getenv("DB_NAME"),
         "WEBSITE_HOSTNAME": os.getenv("WEBSITE_HOSTNAME"),
     }
-@app.get("/debug-sql")
-def debug_sql():
-    server = os.getenv("DB_SERVER")
-    try:
-        with socket.create_connection((server, 1433), timeout=10):
-            return {"ok": True, "server": server, "port": 1433}
-    except Exception as e:
-        return {"ok": False, "server": server, "port": 1433, "error": str(e)}
-
-@app.get("/debug-odbc")
-def debug_odbc():
-    return {
-        "drivers": pyodbc.drivers()
-    }
