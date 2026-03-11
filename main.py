@@ -4,8 +4,6 @@ from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-import socket
-
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
@@ -21,9 +19,10 @@ def get_db():
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER=tcp:{server},1433;"
         f"DATABASE={database};"
-        "Authentication=ActiveDirectoryMsi"
+        "Authentication=ActiveDirectoryMsi;"
         "Encrypt=yes;"
         "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
     )
 
     return pyodbc.connect(conn_str)
@@ -81,11 +80,3 @@ def list_people():
         return [{"id": r[0], "nome": r[1], "idade": r[2]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@app.get("/debug-env")
-def debug_env():
-    return {
-        "DB_SERVER": os.getenv("DB_SERVER"),
-        "DB_NAME": os.getenv("DB_NAME"),
-        "WEBSITE_HOSTNAME": os.getenv("WEBSITE_HOSTNAME"),
-    }
