@@ -19,7 +19,7 @@ def get_db():
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER=tcp:{server},1433;"
         f"DATABASE={database};"
-        "Authentication=ActiveDirectoryMsi;"
+        "Authentication=ActiveDirectoryManagedIdentity"
         "Encrypt=yes;"
         "TrustServerCertificate=no;"
     )
