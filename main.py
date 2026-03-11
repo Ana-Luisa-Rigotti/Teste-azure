@@ -79,3 +79,11 @@ def list_people():
         return [{"id": r[0], "nome": r[1], "idade": r[2]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/debug-env")
+def debug_env():
+    return {
+        "DB_SERVER": os.getenv("DB_SERVER"),
+        "DB_NAME": os.getenv("DB_NAME"),
+        "WEBSITE_HOSTNAME": os.getenv("WEBSITE_HOSTNAME"),
+    }
